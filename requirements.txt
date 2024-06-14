@@ -1,0 +1,7 @@
+notebook
+cars
+bulldozer-dtm
+plotly
+dask==2023.8.1
+distributed==2023.8.1
+xarray==2023.7.0
