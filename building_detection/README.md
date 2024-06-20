@@ -11,4 +11,16 @@ These data are MAXAR satellite images applied to observations of natural disaste
 
 ### Neural network
 
+Before training your neural network, you need to define the right parameters to avoid overlearning, underlearning, convergence problems and poor overall model performance. That's why you can change the drive parameters by: selecting the architecture, encoder, network depth and output activation function.
+'''
+model = get_model(
+    num_classes = 1, 
+    neural_network = 'name_of_my_NN',       # UNet, DeepLabV3, MAnet, Linknet, FPN, PAN, ...
+    encoder_name = 'name_of_my_encoder',    # ResNet, GERNet, DenseNet, EfficientNet, MobileNet, ...
+    encoder_depth = depth,                  # Encoder depth number integer
+    activation = 'name_of_my_function'      # Sigmoïd, Softmax, Logsoftmax, Tanh, Identity, ...
+)
+'''
+
 ## 2. Inference
+
