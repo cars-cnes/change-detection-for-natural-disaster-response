@@ -22,7 +22,7 @@ my_model = get_model(
 )
 ```
 
-We can then add data augmentation if we want to fool the neural network by applying several transformations to the images and masks so that the network is more reliable and able to generalize unseen data. We then define the learning parameters using a semantic segmentation model based on the previously created network.
+We can then add data augmentation if we want to fool the neural network by applying several transformations to the images and masks so that the network is more reliable and able to generalize unseen data. We then define the learning parameters using a semantic segmentation model based on the previously created network :
 ```
 segmentation_model = SegmentationModel(
     model = my_model,                       # Put the name of your model
@@ -37,14 +37,35 @@ segmentation_model = SegmentationModel(
 We can choose whether or not to use weights already trained for building detection using spatial imagery, by entering the direction to the .ckpt file.
 ```
 checkpoint_callback = pl.callbacks.ModelCheckpoint(
-    monitor='val_loss',                                             # Quantity to monitor : 'val_loss', 'loss', ...
-    filename='my_best_model',                                       # Save parameter in this directory
-    save_top_k=1,                                                   # the best k models according to the quantity monitored will be saved
-    mode='min'                                                      # If save_top_k != 0, the decision to overwrite the current save file is made based on either the maximization or the minimization of the monitored quantity
+    monitor = 'val_loss',                                             # Quantity to monitor : 'val_loss', 'loss', ...
+    filename = 'my_best_model',                                       # Save parameter in this directory
+    save_top_k = 1,                                                   # the best k models according to the quantity monitored will be saved
+    mode = 'min'                                                      # If save_top_k != 0, the decision to overwrite the current save file is made based on either the maximization or the minimization of the monitored quantity
 )
 name_best_model = 'Pre_train_weights.ckpt'                          
 segmentation_model.load_state_dict(torch.load(name_best_model))     # Load pre-train weights with model
 ```
+
+Before you can run the training with the dataset, you need to set the trainer conditions :
+```
+trainer = pl.Trainer(
+    callbacks = [checkpoint_callback],  # Save checkpoints
+    max_epochs = number_epochs,         # Maximum number of epochs for training and validation stage
+    log_every_n_steps = n,              # Control Logging Frequency
+    logger = logger,                    # Training and validation stage control with tensorboard
+    devices = n_devices,                # Number of device (CPU, GPU, ...)
+    accelerator = "my_accelerator"      # CPU, GPU, ...
+)
+```
+
+Once all these steps have been carried out and parameterized, we can start training our neural network on the dataset and then save the best training weights.
+```
+trainer.fit(segmentation_model, datamodule=data_module)             # Training and validation stages for semantic segmentation model on dataset
+
+torch.save(segmentation_model.state_dict(), 'best_model.ckpt')      # Save best weights for this model configuration
+```
+
+### Training for FOSS4G
 
 ## 2. Inference
 
