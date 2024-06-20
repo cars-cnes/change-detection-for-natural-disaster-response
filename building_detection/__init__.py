@@ -446,6 +446,8 @@ def plot_prediction(initial_image, predicted_mask) :
 
     plt.show()
 
+    return result
+
 ###############################################################################
 
 def run(img_dir, weights):
@@ -491,8 +493,9 @@ def run(img_dir, weights):
     predicted_mask_binary = (predicted_mask > 0.5).astype(np.uint8)
 
     predicted_mask_binary = remove_padding(predicted_mask_binary, image.shape[1:3])
+    result = plot_prediction(image, predicted_mask_binary)
     
-    return plot_prediction(image, predicted_mask_binary)
+    return image[0], predicted_mask_binary, result
 
 def training(images, masks, Pre_train_weights):
     data_module = DataModule(images, masks, data_augmentation)
