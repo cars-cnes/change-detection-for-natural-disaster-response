@@ -58,7 +58,7 @@ trainer = pl.Trainer(
 )
 ```
 
-Once all these steps have been carried out and parameterized, we can start training our neural network on the dataset and then save the best training weights.
+Once all these steps have been carried out and parameterized, we can start training our neural network on the dataset and then save the best training weights :
 ```
 trainer.fit(segmentation_model, datamodule=data_module)             # Training and validation stages for semantic segmentation model on dataset
 
@@ -66,6 +66,74 @@ torch.save(segmentation_model.state_dict(), 'best_model.ckpt')      # Save best 
 ```
 
 ### Training for FOSS4G
+
+In order to be able to make inferences on CNES Pleiades data, we propose to choose the best training parameters and weights on xView2 data that favor building recognition on Pleiades data in the validation stage :
+```
+model = get_model(
+    num_classes = 1, 
+    neural_network = 'MAnet',
+    encoder_name = 'efficientnet-b7',
+    encoder_depth = 5,
+    activation = 'sigmoid'
+)
+
+data_augmentation = {
+    # Geometric transformations
+    'RandomRotation': (0, 180),
+    'RandomVerticalFlip': 0.5,
+    'RandomHorizontalFlip': 0.5,
+    'RandomCrop': (256, 256),
+
+    # Radiometric transformations
+    'ColorJitter': {
+    'brightness': 0.2,
+    'contrast': 0.2,
+    'saturation': 0.2,
+    'hue': 0.1 
+    },
+    'RandomGamma': {
+        'gamma': (0.7, 1.5),
+        'p': 0.5
+    },
+    'RandomBrightness': {
+        'brightness': (0.5, 1.5),
+        'p': 0.5
+    },
+    'RandomContrast': {
+        'contrast': (0.5, 1.5),
+        'p': 0.5
+    },
+    'GaussianBlur': {
+        'kernel_size': (5, 5),
+        'sigma': (0.1, 2.0)
+    }
+}
+
+segmentation_model = SegmentationModel(
+    model = model,
+    optimizer_name = 'AdamW',
+    log_every_n_steps = 30,
+    learning_rate = 0.0001,
+    loss = 'CombinedLoss',
+    data_augmentation = data_augmentation
+)
+
+checkpoint_callback = pl.callbacks.ModelCheckpoint(
+    monitor = 'val_loss',
+    filename = 'best_model',
+    save_top_k = 1,
+    mode = 'min'
+)
+
+trainer = pl.Trainer(
+    callbacks=[checkpoint_callback], 
+    max_epochs=50, 
+    log_every_n_steps=30,
+    logger=logger,
+    devices=1, 
+    accelerator="auto"
+)
+```
 
 ## 2. Inference
 
