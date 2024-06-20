@@ -137,4 +137,15 @@ trainer = pl.Trainer(
 
 ## 2. Inference
 
-The aim of the inference is to be able to apply the neural network trained in building detection from satellite images to CNES Pleiades images. We therefore use the weights from the previous training to apply them to the images in the chart on the earthquake in Turkey (seen on the tutorial.ipynb). So, first, an image of any size is fed into the neural network. The network will predict a mask highlighting the potential buildings it has recognized in the image. This prediction mask is then superimposed on the input image, showing all the buildings that the network has detected.
+The aim of the inference is to be able to apply the neural network trained in building detection from satellite images to CNES Pleiades images. We therefore use the weights from the previous training to apply them to the images in the chart on the earthquake in Turkey (seen on the tutorial.ipynb). So, first, an image of any size is fed into the neural network. The network will predict a mask highlighting the potential buildings it has recognized in the image. This prediction mask is then superimposed on the input image, showing all the buildings that the network has detected :
+```
+checkpoint = torch.load(weights)                                    # Loading weights
+segmentation_model.load_state_dict(checkpoint)                      # Apply weights and checkpoints on model
+segmentation_model.eval()                                           # Evaluate model
+
+with torch.no_grad():
+    predicted_mask = segmentation_model(input_image)                # Give the image to the model
+    predicted_mask = predicted_mask.squeeze().cpu().numpy()         # Convert in ndarray
+
+predicted_mask_binary = (predicted_mask > 0.5).astype(np.uint8)     # Binarize the prediction mask
+```
