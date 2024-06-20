@@ -230,7 +230,7 @@ class SegmentationModel(pl.LightningModule):
         self.training_step_outputs_iou = []
 
         self.transform = DataAugmentation(data_augmentation)
-        self.model = model
+        self.model = model.to('cpu')
 
         if loss == 'DiceLoss' :
             self.loss = DiceLoss()
@@ -364,13 +364,8 @@ def get_model(num_classes, neural_network, encoder_name, encoder_depth, activati
 
     return model
 
-model = get_model(
-    num_classes=1, 
-    neural_network='MAnet',
-    encoder_name='efficientnet-b7',
-    encoder_depth=5,
-    activation=None
-)
+log_dir = "/tensorboard/logs"
+logger = pl.loggers.TensorBoardLogger(log_dir, name="change_detection")
 
 data_augmentation = {
     # Geometric transformations
@@ -419,18 +414,6 @@ data_augmentation = {
     }
 }
 
-log_dir = "/tensorboard/logs"
-logger = pl.loggers.TensorBoardLogger(log_dir, name="change_detection")
-
-segmentation_model = SegmentationModel(
-    model=model,
-    optimizer_name='AdamW',
-    log_every_n_steps=30,
-    learning_rate=0.0001,
-    loss='CombinedLoss',
-    data_augmentation=data_augmentation
-)
-
 def overlay_mask(image, mask, color=(0.0, 1.0, 0.0), alpha=0.5):
     """
     Superimposes a mask on an image with a given color.
@@ -466,6 +449,31 @@ def plot_prediction(initial_image, predicted_mask) :
 ###############################################################################
 
 def run(img_dir, weights):
+
+    model = get_model(
+    num_classes=1, 
+    neural_network='MAnet',
+    encoder_name='efficientnet-b7',
+    encoder_depth=5,
+    activation=None
+    )
+
+    segmentation_model = SegmentationModel(
+        model=model,
+        optimizer_name='AdamW',
+        log_every_n_steps=30,
+        learning_rate=0.0001,
+        loss='CombinedLoss',
+        data_augmentation=data_augmentation
+    )
+
+    checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        monitor='val_loss',
+        filename='best_model',
+        save_top_k=1,
+        mode='min'
+    )
+
     image = load_data(img_dir)
     image_pad = np.array([pad_image(img) for img in image])
 
@@ -486,7 +494,30 @@ def run(img_dir, weights):
     
     return plot_prediction(image, predicted_mask_binary)
 
-def training():
+def training(images, masks, Pre_train_weights):
+    data_module = DataModule(images, masks, data_augmentation)
+
+    if Pre_train_weights != None :
+        # Using a network with pre-trained weights in a .ckpt file
+        name_best_model = 'Pre_train_weights/Pre_train_MAnet_efficientNet_b7_iou_0,7.ckpt'
+        segmentation_model.load_state_dict(torch.load(name_best_model))
+
+    # Drive configuration
+    trainer = pl.Trainer(
+        callbacks=[checkpoint_callback], 
+        max_epochs=10, 
+        log_every_n_steps=10,
+        logger=logger,
+        devices=1, 
+        accelerator="cpu"
+    )
+
+    # Model training with images and masks
+    trainer.fit(segmentation_model, datamodule=data_module)
+
+    # Save weights in a .ckpt file
+    torch.save(segmentation_model.state_dict(), 'best_model.ckpt')
+
     print("training")
     return
 
