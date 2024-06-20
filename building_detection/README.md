@@ -126,14 +126,15 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(
 )
 
 trainer = pl.Trainer(
-    callbacks=[checkpoint_callback], 
-    max_epochs=50, 
-    log_every_n_steps=30,
-    logger=logger,
-    devices=1, 
-    accelerator="auto"
+    callbacks = [checkpoint_callback], 
+    max_epochs = 50, 
+    log_every_n_steps = 30,
+    logger = logger,
+    devices = 1, 
+    accelerator = "auto"
 )
 ```
 
 ## 2. Inference
 
+The aim of the inference is to be able to apply the neural network trained in building detection from satellite images to CNES Pleiades images. We therefore use the weights from the previous training to apply them to the images in the chart on the earthquake in Turkey (seen on the tutorial.ipynb). So, first, an image of any size is fed into the neural network. The network will predict a mask highlighting the potential buildings it has recognized in the image. This prediction mask is then superimposed on the input image, showing all the buildings that the network has detected.
