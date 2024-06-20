@@ -423,7 +423,7 @@ def overlay_mask(image, mask, color=(0.0, 1.0, 0.0), alpha=0.5):
     overlay[mask] = (1 - alpha) * overlay[mask] + alpha * color
     return overlay
 
-def plot_prediction(initial_image, predicted_mask) :
+def plot_prediction(initial_image, predicted_mask):
     plt.figure(figsize=(10, 5))
 
     plt.subplot(1, 3, 1)
@@ -445,8 +445,6 @@ def plot_prediction(initial_image, predicted_mask) :
     plt.axis('off')
 
     plt.show()
-
-    return result
 
 ###############################################################################
 
@@ -493,9 +491,7 @@ def run(img_dir, weights):
     predicted_mask_binary = (predicted_mask > 0.5).astype(np.uint8)
 
     predicted_mask_binary = remove_padding(predicted_mask_binary, image.shape[1:3])
-    result = plot_prediction(image, predicted_mask_binary)
-    
-    return image[0], predicted_mask_binary, result
+    return image, predicted_mask_binary
 
 def training(images, masks, Pre_train_weights):
     data_module = DataModule(images, masks, data_augmentation)
