@@ -1,4 +1,5 @@
 notebook
+libsgm==0.4.6
 cars
 bulldozer-dtm
 plotly
