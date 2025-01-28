@@ -1,8 +1,6 @@
 notebook
 rasterio<1.4.0
-libsgm==0.4.6
 cars
-bulldozer-dtm
 plotly
 dask==2023.8.1
 distributed==2023.8.1
