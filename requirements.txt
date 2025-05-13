@@ -1,6 +1,6 @@
 notebook
 rasterio<1.4.0
-cars
+cars<0.11
 plotly
 dask==2023.8.1
 distributed==2023.8.1
